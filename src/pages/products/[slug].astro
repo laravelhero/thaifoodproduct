@@ -1,0 +1,144 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import HeroBackdrop from '../../components/HeroBackdrop.astro';
+import {
+  getCategories,
+  getCategoryTree,
+  getProductsByCategory,
+} from '../../lib/woo.js';
+
+export async function getStaticPaths() {
+  const cats = await getCategories();
+  return Promise.all(
+    cats.map(async (cat) => {
+      const products = await getProductsByCategory(cat.id);
+      const children = cats.filter((c) => c.parent === cat.id);
+      const parent = cat.parent
+        ? cats.find((c) => c.id === cat.parent) || null
+        : null;
+      return {
+        params: { slug: cat.slug },
+        props: { category: cat, products, children, parent },
+      };
+    })
+  );
+}
+
+const { category, products, parent } = Astro.props;
+const tree = await getCategoryTree();
+
+// A top-level pill is "active" when it IS the current category, or is the
+// parent of the current (sub-)category we're viewing.
+const isGroupActive = (c) =>
+  c.slug === category.slug || (parent && parent.slug === c.slug);
+
+const pillBase = 'rounded-full px-4 py-1.5 text-sm font-semibold transition';
+const activeCls = 'bg-thai-red text-thai-cream';
+const inactiveCls = 'bg-white text-thai-ink ring-1 ring-thai-ink/10 hover:bg-thai-cream';
+
+// Use this category's own product photos for the hero backdrop.
+const heroImages = products
+  .filter((p) => p.images?.[0])
+  .map((p) => p.images[0].thumbnail || p.images[0].src);
+---
+
+<Layout title={`${category.name} — International Thai Food and Beverage`}>
+  <!-- Header -->
+  <section class="relative overflow-hidden bg-thai-red text-thai-cream">
+    <HeroBackdrop images={heroImages} />
+    <div class="relative mx-auto max-w-7xl px-4 py-14 text-center">
+      <nav class="mb-4 text-sm text-thai-cream/80">
+        <a href="/products" class="hover:text-thai-gold">Products</a>
+        {parent && (<><span class="px-1.5">/</span><a href={`/products/${parent.slug}`} class="hover:text-thai-gold">{parent.name}</a></>)}
+        <span class="px-1.5">/</span>
+        <span class="text-thai-gold">{category.name}</span>
+      </nav>
+
+      <h1 class="font-display text-4xl font-extrabold sm:text-5xl">{category.name}</h1>
+      <p class="mt-2 font-display text-lg italic text-thai-gold">Our Tasty {category.name}</p>
+      <p class="mt-2 text-thai-cream/85">
+        {category.count} {category.count === 1 ? 'product' : 'products'} available
+      </p>
+    </div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- Category toolbar + searchable grid -->
+  <section class="mx-auto max-w-7xl px-4 py-12">
+    {products.length === 0 ? (
+      <p class="py-20 text-center text-thai-ink/60">No products in this category yet — check back soon.</p>
+    ) : (
+      <div x-data="{ q: '', matches(el){ return el.dataset.name.includes(this.q.toLowerCase().trim()); }, count(){ return [...this.$root.querySelectorAll('[data-name]')].filter(el=>this.matches(el)).length; } }">
+        <!-- Toolbar: category pills (links) left, search right -->
+        <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div class="flex flex-wrap gap-2">
+            <a href="/products/all" class:list={[pillBase, inactiveCls]}>All</a>
+            {tree.map((c) =>
+              c.children.length > 0 ? (
+                <div class="relative" x-data="{ openMenu: false }" @click.outside="openMenu = false">
+                  <div class:list={['flex rounded-full', isGroupActive(c) && 'ring-2 ring-thai-red']}>
+                    <a
+                      href={`/products/${c.slug}`}
+                      class:list={['rounded-l-full pl-4 pr-2 py-1.5 text-sm font-semibold transition', isGroupActive(c) ? activeCls : inactiveCls]}
+                    >{c.name}</a>
+                    <button
+                      @click="openMenu = !openMenu"
+                      class:list={['rounded-r-full pr-3 pl-1 py-1.5 transition', isGroupActive(c) ? activeCls : inactiveCls]}
+                      aria-label={`Show ${c.name} sub-categories`}
+                    >
+                      <svg class="w-3.5 h-3.5 transition" :class="openMenu && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                    </button>
+                  </div>
+                  <div x-show="openMenu" x-transition x-cloak class="absolute left-0 z-20 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-2xl ring-1 ring-thai-ink/10">
+                    <a href={`/products/${c.slug}`} class:list={['flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition', category.slug === c.slug ? activeCls : 'hover:bg-thai-cream']}>All {c.name}</a>
+                    {c.children.map((ch) => (
+                      <a href={`/products/${ch.slug}`} class:list={['flex items-center justify-between rounded-lg px-3 py-2 text-sm transition', category.slug === ch.slug ? activeCls : 'hover:bg-thai-cream']}>
+                        <span>{ch.name}</span>
+                        <span class="text-xs opacity-60">{ch.count}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <a href={`/products/${c.slug}`} class:list={[pillBase, c.slug === category.slug ? activeCls : inactiveCls]}>{c.name}</a>
+              )
+            )}
+          </div>
+
+          <!-- Search (scoped to this category) -->
+          <div class="relative lg:w-80 shrink-0">
+            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-thai-ink/40">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input
+              x-model="q"
+              type="search"
+              placeholder={`Search in ${category.name}…`}
+              class="w-full rounded-full border border-thai-ink/15 bg-white py-2.5 pl-10 pr-9 text-sm outline-none focus:border-thai-red focus:ring-2 focus:ring-thai-red/20"
+            />
+            <button x-show="q.length" @click="q = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-thai-ink/40 hover:text-thai-red" aria-label="Clear search">✕</button>
+          </div>
+        </div>
+
+        <!-- Products -->
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {products.map((p) => (
+            <div data-name={p.name.toLowerCase()} x-show="matches($el)">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
+
+        <!-- Empty state -->
+        <p x-show="count() === 0" x-cloak class="py-16 text-center text-thai-ink/60">
+          No products match your search. <button @click="q=''" class="font-semibold text-thai-green hover:text-thai-red">Clear</button>
+        </p>
+      </div>
+    )}
+
+    <div class="mt-12 text-center">
+      <a href="/products" class="font-semibold text-thai-green hover:text-thai-red transition">← Back to all categories</a>
+    </div>
+  </section>
+</Layout>

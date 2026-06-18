@@ -1,0 +1,208 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCatalog, getCategoryTree } from '../../lib/woo.js';
+
+const products = await getCatalog();
+const tree = await getCategoryTree();
+const PAGE = 16; // products per scroll batch
+
+// Slim payload sent to the client — only what a card needs.
+// `cats` comes from the reliable per-category mapping (getCatalog).
+const slim = products.map((p) => ({
+  name: p.name,
+  img: p.images?.[0]?.thumbnail || p.images?.[0]?.src || '',
+  cat: p.catNames?.[0] || '',
+  cats: p.catSlugs || [],
+  url: p.permalink,
+  desc: p.short_description || '',
+}));
+---
+
+<Layout title="All Products — International Thai Food and Beverage">
+  <!-- Header -->
+  <section class="bg-thai-red text-thai-cream">
+    <div class="mx-auto max-w-7xl px-4 py-14 text-center">
+      <nav class="mb-3 text-sm text-thai-cream/80">
+        <a href="/products" class="hover:text-thai-gold">Products</a>
+        <span class="px-1.5">/</span>
+        <span class="text-thai-gold">All Products</span>
+      </nav>
+      <h1 class="font-display text-4xl font-extrabold sm:text-5xl">All Products</h1>
+      <p class="mt-3 text-thai-cream/85">Browse our complete range — {products.length} products in total.</p>
+    </div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- Filter + search + windowed grid (only visible cards exist in the DOM) -->
+  <section
+    class="mx-auto max-w-7xl px-4 py-12"
+    x-data={`{
+      all: window.__ALL_PRODUCTS__,
+      cat: 'all',
+      q: '',
+      limit: ${PAGE},
+      step: ${PAGE},
+
+      get filtered() {
+        const q = this.q.toLowerCase().trim();
+        return this.all.filter((p) =>
+          (this.cat === 'all' || p.cats.includes(this.cat)) &&
+          (q === '' || p.name.toLowerCase().includes(q))
+        );
+      },
+      get shown() { return this.filtered.slice(0, this.limit); },
+
+      reset() { this.limit = this.step; },
+      loadMore() { if (this.limit < this.filtered.length) this.limit += this.step; },
+
+      init() {
+        let intersecting = false;
+        const pump = () => {
+          if (intersecting && this.limit < this.filtered.length) {
+            this.limit += this.step;
+            this.$nextTick(() => requestAnimationFrame(pump));
+          }
+        };
+        const io = new IntersectionObserver((e) => {
+          intersecting = e[0].isIntersecting;
+          pump();
+        }, { rootMargin: '600px 0px' });
+        io.observe(this.$refs.sentinel);
+      }
+    }`}
+    x-cloak
+  >
+    <!-- Toolbar: pills left, search right -->
+    <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap gap-2">
+        <button
+          @click="cat = 'all'; reset()"
+          :class="cat === 'all' ? 'bg-thai-red text-thai-cream' : 'bg-white text-thai-ink ring-1 ring-thai-ink/10 hover:bg-thai-cream'"
+          class="rounded-full px-4 py-1.5 text-sm font-semibold transition"
+        >All</button>
+        {tree.map((c) => {
+          // slugs that should highlight this pill: itself + any children
+          const group = JSON.stringify([c.slug, ...c.children.map((ch) => ch.slug)]);
+          return c.children.length > 0 ? (
+            <div class="relative" x-data="{ openMenu: false }" @click.outside="openMenu = false">
+              <div class="flex" :class={`${group}.includes(cat) ? 'ring-2 ring-thai-red rounded-full' : ''`}>
+                <button
+                  @click={`cat = '${c.slug}'; reset()`}
+                  :class={`${group}.includes(cat) ? 'bg-thai-red text-thai-cream' : 'bg-white text-thai-ink ring-1 ring-thai-ink/10 hover:bg-thai-cream'`}
+                  class="rounded-l-full pl-4 pr-2 py-1.5 text-sm font-semibold transition"
+                >{c.name}</button>
+                <button
+                  @click="openMenu = !openMenu"
+                  :class={`${group}.includes(cat) ? 'bg-thai-red text-thai-cream' : 'bg-white text-thai-ink ring-1 ring-thai-ink/10 hover:bg-thai-cream'`}
+                  class="rounded-r-full pr-3 pl-1 py-1.5 transition"
+                  aria-label={`Show ${c.name} sub-categories`}
+                >
+                  <svg class="w-3.5 h-3.5 transition" :class="openMenu && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+                </button>
+              </div>
+              <div x-show="openMenu" x-transition x-cloak class="absolute left-0 z-20 mt-2 w-48 rounded-xl bg-white p-1.5 shadow-2xl ring-1 ring-thai-ink/10">
+                <button
+                  @click={`cat = '${c.slug}'; reset(); openMenu = false`}
+                  :class={`cat === '${c.slug}' ? 'bg-thai-red text-thai-cream' : 'hover:bg-thai-cream'`}
+                  class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold transition"
+                >All {c.name}</button>
+                {c.children.map((ch) => (
+                  <button
+                    @click={`cat = '${ch.slug}'; reset(); openMenu = false`}
+                    :class={`cat === '${ch.slug}' ? 'bg-thai-red text-thai-cream' : 'hover:bg-thai-cream'`}
+                    class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition"
+                  >
+                    <span>{ch.name}</span>
+                    <span class="text-xs opacity-60">{ch.count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <button
+              @click={`cat = '${c.slug}'; reset()`}
+              :class={`cat === '${c.slug}' ? 'bg-thai-red text-thai-cream' : 'bg-white text-thai-ink ring-1 ring-thai-ink/10 hover:bg-thai-cream'`}
+              class="rounded-full px-4 py-1.5 text-sm font-semibold transition"
+            >{c.name}</button>
+          );
+        })}
+      </div>
+
+      <div class="relative lg:w-80 shrink-0">
+        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-thai-ink/40">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m21 21-4.3-4.3"/></svg>
+        </span>
+        <input
+          x-model="q"
+          @input="reset()"
+          type="search"
+          placeholder="Search products…"
+          class="w-full rounded-full border border-thai-ink/15 bg-white py-2.5 pl-10 pr-9 text-sm outline-none focus:border-thai-red focus:ring-2 focus:ring-thai-red/20"
+        />
+        <button
+          x-show="q.length"
+          @click="q = ''; reset()"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-thai-ink/40 hover:text-thai-red"
+          aria-label="Clear search"
+        >✕</button>
+      </div>
+    </div>
+
+    <!-- Windowed product grid -->
+    <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+      <template x-for="(p, i) in shown" :key="p.name + i">
+        <article x-data="{ open: false }" class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:shadow-xl">
+          <a :href="p.url" target="_blank" rel="noopener" class="relative block aspect-square overflow-hidden bg-thai-cream">
+            <template x-if="p.img">
+              <img :src="p.img" :alt="p.name" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            </template>
+            <template x-if="!p.img">
+              <div class="grid h-full w-full place-items-center text-5xl">🍪</div>
+            </template>
+            <template x-if="p.cat">
+              <span class="absolute left-3 top-3 rounded-full bg-thai-green/90 px-2.5 py-1 text-[11px] font-semibold text-white" x-text="p.cat"></span>
+            </template>
+          </a>
+          <div class="flex flex-1 flex-col p-4">
+            <h3 class="font-display text-lg font-bold leading-snug text-thai-red" x-text="p.name"></h3>
+            <div class="prose-spec mt-2 text-thai-ink/75" x-show="open" x-transition x-html="p.desc"></div>
+            <div class="mt-auto pt-3">
+              <template x-if="p.desc">
+                <button @click="open = !open" class="text-sm font-semibold text-thai-green hover:text-thai-red transition">
+                  <span x-show="!open">View More →</span>
+                  <span x-show="open">Show Less ↑</span>
+                </button>
+              </template>
+              <template x-if="!p.desc">
+                <a :href="p.url" target="_blank" rel="noopener" class="text-sm font-semibold text-thai-green hover:text-thai-red transition">View More →</a>
+              </template>
+            </div>
+          </div>
+        </article>
+      </template>
+    </div>
+
+    <!-- Empty state -->
+    <p x-show="filtered.length === 0" class="py-20 text-center text-thai-ink/60">
+      No products match your search. <button @click="q=''; cat='all'; reset()" class="font-semibold text-thai-green hover:text-thai-red">Reset filters</button>
+    </p>
+
+    <!-- Counter + load more + scroll sentinel -->
+    <div class="mt-10 flex flex-col items-center gap-3" x-show="filtered.length > 0">
+      <p class="text-sm text-thai-ink/60">
+        Showing <span x-text="shown.length"></span> of <span x-text="filtered.length"></span> products
+      </p>
+      <button
+        x-show="limit < filtered.length"
+        @click="loadMore()"
+        class="rounded-full bg-thai-red px-7 py-2.5 text-sm font-semibold text-thai-cream shadow transition hover:bg-thai-red-dark"
+      >Load More</button>
+      <div x-ref="sentinel" class="h-px w-full"></div>
+    </div>
+  </section>
+
+  <!-- Product data for the client (windowed rendering keeps the DOM light) -->
+  <script is:inline define:vars={{ slim }}>
+    window.__ALL_PRODUCTS__ = slim;
+  </script>
+</Layout>

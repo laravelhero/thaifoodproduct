@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+import HeroBackdrop from '../components/HeroBackdrop.astro';
+---
+
+<Layout title="Contact Us & Media — International Thai Food and Beverage">
+  <section class="relative overflow-hidden bg-thai-red text-thai-cream">
+    <HeroBackdrop />
+    <div class="relative mx-auto max-w-7xl px-4 py-16 text-center">
+      <h1 class="font-display text-4xl font-extrabold sm:text-5xl">Contact Us &amp; Media</h1>
+      <p class="mx-auto mt-3 max-w-2xl font-display text-lg italic text-thai-gold">
+        We'd love to hear from you — let's collaborate.
+      </p>
+    </div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- Split: form / company info -->
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <div class="grid gap-10 lg:grid-cols-2">
+      <!-- Contact form -->
+      <div
+        class="rounded-2xl bg-white p-8 shadow-md ring-1 ring-thai-ink/5"
+        x-data="{ name:'', email:'', message:'', sent:false,
+          submit() {
+            if(!this.name || !this.email || !this.message) return;
+            this.sent = true;
+            window.location.href = `mailto:info@bd-itfbl.com?subject=${encodeURIComponent('Website enquiry from '+this.name)}&body=${encodeURIComponent(this.message+'\n\nFrom: '+this.name+' ('+this.email+')')}`;
+          }
+        }"
+      >
+        <h2 class="font-display text-2xl font-bold text-thai-red">Send a Message</h2>
+        <p class="mt-1 text-sm text-thai-ink/60">Fill in the form and we'll get back to you shortly.</p>
+
+        <form class="mt-6 space-y-4" @submit.prevent="submit">
+          <div>
+            <label class="block text-sm font-medium text-thai-ink/80">Name</label>
+            <input x-model="name" type="text" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="Your name" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-thai-ink/80">Email</label>
+            <input x-model="email" type="email" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-thai-ink/80">Message</label>
+            <textarea x-model="message" rows="5" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="How can we help?"></textarea>
+          </div>
+          <button type="submit" class="w-full rounded-lg bg-thai-red px-6 py-3 font-semibold text-thai-cream shadow transition hover:bg-thai-red-dark">
+            Send Message
+          </button>
+          <p x-show="sent" x-cloak style="display:none" class="text-center text-sm text-thai-green">Opening your email app… thank you!</p>
+        </form>
+      </div>
+
+      <!-- Company info -->
+      <div class="space-y-6">
+        <div class="rounded-2xl bg-thai-cream p-8 ring-1 ring-thai-gold/30">
+          <h2 class="font-display text-2xl font-bold text-thai-red">Company Information</h2>
+          <ul class="mt-5 space-y-4 text-thai-ink/80">
+            <li class="flex gap-3"><span class="text-2xl">📍</span><div><div class="font-semibold">Address</div><div class="text-sm">International Thai Food and Beverage Ltd.<br />748, BFIDC Road, Kalurghat Heavy I/A,<br />Chandgaon, Chittagong, Bangladesh</div></div></li>
+            <li class="flex gap-3"><span class="text-2xl">📞</span><div><div class="font-semibold">Cell (Office)</div><a href="tel:+8802334471619" class="text-sm hover:text-thai-red">+880 2334471619</a></div></li>
+          </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white p-8 shadow-md ring-1 ring-thai-ink/5">
+          <h3 class="font-display text-lg font-bold text-thai-red">Local</h3>
+          <ul class="mt-4 space-y-3 text-sm text-thai-ink/80">
+            <li><span class="font-semibold">Cell 1:</span> <a href="tel:+8801844538504" class="hover:text-thai-red">+880 1844538504</a></li>
+            <li><span class="font-semibold">Email:</span> <a href="mailto:info@bd-itfbl.com" class="hover:text-thai-red">info@bd-itfbl.com</a></li>
+            <li><span class="font-semibold">Business Hours:</span> 9.00 AM – 6.00 PM</li>
+          </ul>
+        </div>
+
+        <div class="rounded-2xl bg-white p-8 shadow-md ring-1 ring-thai-ink/5">
+          <h3 class="font-display text-lg font-bold text-thai-red">Export</h3>
+          <ul class="mt-4 space-y-3 text-sm text-thai-ink/80">
+            <li><span class="font-semibold">Cell:</span> <a href="tel:+8801977764311" class="hover:text-thai-red">+880 1977 764311</a></li>
+            <li><span class="font-semibold">Email:</span> <a href="mailto:thaifood81@gmail.com" class="hover:text-thai-red">thaifood81@gmail.com</a></li>
+            <li><span class="font-semibold">Business Hours:</span> 9.00 AM – 6.00 PM</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Media ───────────────────────────────────────────────────── -->
+  <section id="media" class="bg-white scroll-mt-24">
+    <div class="mx-auto max-w-7xl px-4 py-16">
+      <div class="mb-10 text-center">
+        <h2 class="font-display text-3xl font-bold text-thai-red sm:text-4xl">Media Center</h2>
+        <p class="mt-2 text-thai-ink/70">News, videos and photos from our kitchen to the world.</p>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-3">
+        <div class="rounded-2xl border border-thai-gold/30 bg-thai-cream/40 p-8 text-center">
+          <div class="text-4xl">📰</div>
+          <h3 class="mt-3 font-display text-xl font-bold text-thai-red">News</h3>
+          <p class="mt-2 text-sm text-thai-ink/70">Latest company announcements and product launches. <em>Coming soon.</em></p>
+        </div>
+        <div class="rounded-2xl border border-thai-gold/30 bg-thai-cream/40 p-8 text-center">
+          <div class="text-4xl">🎥</div>
+          <h3 class="mt-3 font-display text-xl font-bold text-thai-red">Videos</h3>
+          <p class="mt-2 text-sm text-thai-ink/70">Product showcases and behind-the-scenes tours. <em>Coming soon.</em></p>
+        </div>
+        <div class="rounded-2xl border border-thai-gold/30 bg-thai-cream/40 p-8 text-center">
+          <div class="text-4xl">🖼️</div>
+          <h3 class="mt-3 font-display text-xl font-bold text-thai-red">Photo Gallery</h3>
+          <p class="mt-2 text-sm text-thai-ink/70">High-resolution shots of our products and packaging. <em>Coming soon.</em></p>
+        </div>
+      </div>
+
+      <p class="mt-12 text-center font-display text-lg italic text-thai-red">
+        Thank you for visiting — we look forward to collaborating with you.
+      </p>
+    </div>
+  </section>
+</Layout>

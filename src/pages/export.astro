@@ -1,0 +1,134 @@
+---
+import Layout from '../layouts/Layout.astro';
+import HeroBackdrop from '../components/HeroBackdrop.astro';
+
+const features = [
+  { icon: '🚢', title: 'Worldwide Shipping', text: 'Sea and air freight to markets across Asia, the Middle East, Africa, the Americas and Oceania.' },
+  { icon: '📜', title: 'Quality Certifications', text: 'Internationally recognized food-safety and quality certifications on every product.' },
+  { icon: '📦', title: 'Reliable Logistics', text: 'Trusted partners and careful packaging ensure your order arrives fresh and intact.' },
+];
+
+// Real export destinations, grouped by region.
+const exportRegions = [
+  {
+    name: 'African Region', icon: '🌍', accent: 'thai-green',
+    countries: [
+      { n: 'Mauritius', f: '🇲🇺' }, { n: 'Mauritania', f: '🇲🇷' },
+      { n: 'Somaliland', f: '🏳️' }, { n: 'Ethiopia', f: '🇪🇹' },
+      { n: 'South Sudan', f: '🇸🇸' }, { n: 'Mayotte', f: '🇾🇹' },
+      { n: 'South Africa', f: '🇿🇦' }, { n: 'Uganda', f: '🇺🇬' },
+    ],
+  },
+  {
+    name: 'Middle East Region', icon: '🕌', accent: 'thai-gold',
+    countries: [
+      { n: 'Qatar', f: '🇶🇦' }, { n: 'Oman', f: '🇴🇲' },
+      { n: 'Bahrain', f: '🇧🇭' }, { n: 'Saudi Arabia', f: '🇸🇦' },
+    ],
+  },
+  {
+    name: 'Asia Pacific', icon: '🌏', accent: 'thai-red',
+    countries: [
+      { n: 'Malaysia', f: '🇲🇾' }, { n: 'Myanmar', f: '🇲🇲' },
+      { n: 'Maldives', f: '🇲🇻' }, { n: 'Bhutan', f: '🇧🇹' },
+      { n: 'Singapore', f: '🇸🇬' }, { n: 'India', f: '🇮🇳' },
+    ],
+  },
+  {
+    name: 'North America', icon: '🌎', accent: 'thai-green',
+    countries: [{ n: 'USA', f: '🇺🇸' }],
+  },
+  {
+    name: 'Oceanian Region', icon: '🌊', accent: 'thai-gold',
+    countries: [
+      { n: 'West Samoa', f: '🇼🇸' }, { n: 'Solomon Islands', f: '🇸🇧' },
+      { n: 'Australia', f: '🇦🇺' },
+    ],
+  },
+];
+
+const totalCountries = exportRegions.reduce((sum, r) => sum + r.countries.length, 0);
+---
+
+<Layout title="Export — International Thai Food and Beverage">
+  <section class="relative overflow-hidden bg-thai-red text-thai-cream">
+    <HeroBackdrop />
+    <div class="relative mx-auto max-w-7xl px-4 py-16 text-center">
+      <h1 class="font-display text-4xl font-extrabold sm:text-5xl">Export</h1>
+      <p class="mt-3 font-display text-lg italic text-thai-gold">Global Distribution</p>
+      <p class="mx-auto mt-3 max-w-2xl text-thai-cream/85">
+        Thai excellence, delivered with global trust. We are now exporting to
+        <strong class="text-thai-gold">{totalCountries}+ countries</strong> across
+        {exportRegions.length} regions around the world.
+      </p>
+      <a href="/products/all" class="mt-7 inline-block rounded-full bg-thai-gold px-7 py-3 font-semibold text-thai-red shadow-lg transition hover:scale-105 hover:bg-thai-gold-soft">
+        View Our Products →
+      </a>
+    </div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- Capabilities -->
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <div class="grid gap-8 md:grid-cols-3">
+      {features.map((f) => (
+        <div class="rounded-2xl bg-white p-8 shadow-md ring-1 ring-thai-ink/5 transition hover:-translate-y-1 hover:shadow-xl">
+          <div class="text-4xl">{f.icon}</div>
+          <h3 class="mt-3 font-display text-xl font-bold text-thai-red">{f.title}</h3>
+          <p class="mt-2 text-sm text-thai-ink/70">{f.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Where we export -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-16">
+      <div class="mb-12 text-center">
+        <h2 class="font-display text-3xl font-bold text-thai-red sm:text-4xl">Where We Export</h2>
+        <p class="mx-auto mt-3 max-w-2xl text-thai-ink/70">
+          From Chittagong to the world — our authentic products reach customers
+          across {exportRegions.length} regions and {totalCountries} countries.
+        </p>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {exportRegions.map((region) => (
+          <div class="flex flex-col overflow-hidden rounded-2xl bg-thai-cream/50 shadow-md ring-1 ring-thai-ink/5 transition hover:shadow-xl">
+            <div class:list={[
+              'flex items-center gap-3 px-6 py-4',
+              region.accent === 'thai-red' && 'bg-thai-red text-thai-cream',
+              region.accent === 'thai-green' && 'bg-thai-green text-white',
+              region.accent === 'thai-gold' && 'bg-thai-gold text-thai-red',
+            ]}>
+              <span class="text-2xl">{region.icon}</span>
+              <h3 class="font-display text-lg font-bold">{region.name}</h3>
+              <span class="ml-auto rounded-full bg-black/10 px-2.5 py-0.5 text-xs font-semibold">{region.countries.length}</span>
+            </div>
+            <div class="flex flex-wrap gap-2 p-6">
+              {region.countries.map((c) => (
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-thai-ink shadow-sm ring-1 ring-thai-ink/10 transition hover:ring-thai-red/40">
+                  <span class="text-base leading-none">{c.f}</span>{c.n}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="bg-thai-cream">
+    <div class="mx-auto max-w-3xl px-4 py-16 text-center">
+      <h2 class="font-display text-2xl font-bold text-thai-red sm:text-3xl">Looking to import authentic Thai products?</h2>
+      <p class="mt-3 text-thai-ink/75">
+        With certified quality and reliable logistics, we partner with importers
+        and distributors worldwide. Let's talk.
+      </p>
+      <a href="/contact" class="mt-7 inline-block rounded-full bg-thai-gold px-8 py-3 font-semibold text-thai-red shadow transition hover:bg-thai-gold-soft">
+        Request an Export Quote
+      </a>
+    </div>
+  </section>
+</Layout>

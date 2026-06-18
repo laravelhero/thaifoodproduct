@@ -1,0 +1,27 @@
+---
+import { getAllProducts } from '../lib/woo.js';
+
+// Optional explicit images; otherwise fall back to a montage of real product
+// photos from the store. Keeps every page hero textured with relevant imagery.
+const { images } = Astro.props;
+let imgs = images;
+if (!imgs || imgs.length === 0) {
+  const products = await getAllProducts();
+  imgs = products
+    .filter((p) => p.images?.[0])
+    .map((p) => p.images[0].thumbnail || p.images[0].src);
+}
+// Repeat to guarantee the grid is fully covered, cap to keep it light.
+while (imgs.length && imgs.length < 24) imgs = [...imgs, ...imgs];
+imgs = imgs.slice(0, 24);
+---
+
+<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+  <div class="grid h-full w-full auto-rows-fr grid-cols-4 opacity-30 md:grid-cols-6">
+    {imgs.map((src) => (
+      <img src={src} alt="" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+    ))}
+  </div>
+  <!-- Brand overlay keeps hero text fully readable -->
+  <div class="absolute inset-0 bg-gradient-to-b from-thai-red/90 via-thai-red/80 to-thai-red/95"></div>
+</div>

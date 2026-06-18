@@ -1,0 +1,116 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CategoryCard from '../components/CategoryCard.astro';
+import ProductCard from '../components/ProductCard.astro';
+import HeroBackdrop from '../components/HeroBackdrop.astro';
+import { getCategoryTree, getFeaturedProducts } from '../lib/woo.js';
+
+const tree = await getCategoryTree();
+// Featured Categories — 8 on desktop, 4 on mobile (items 5–8 hidden below lg).
+const featuredCategories = tree.slice(0, 8);
+// Featured Products — 8 on desktop, 4 on mobile.
+const featuredProducts = await getFeaturedProducts(8);
+---
+
+<Layout>
+  <!-- ── Hero ─────────────────────────────────────────────────────── -->
+  <section class="relative overflow-hidden bg-thai-red text-thai-cream">
+    <HeroBackdrop />
+    <div class="absolute inset-0 opacity-10" aria-hidden="true"
+      style="background-image: radial-gradient(circle at 20% 20%, #FFD700 0, transparent 40%), radial-gradient(circle at 80% 70%, #FFD700 0, transparent 45%);">
+    </div>
+    <div class="relative mx-auto max-w-7xl px-4 py-24 sm:py-32 text-center">
+      <p class="mb-4 inline-block rounded-full bg-thai-gold/20 px-4 py-1 text-sm font-medium text-thai-gold ring-1 ring-thai-gold/40">
+        🌍 Exporting authentic Thai flavor worldwide
+      </p>
+      <h1 class="font-display text-4xl font-extrabold leading-tight sm:text-6xl animate-fade-up">
+        International Thai Food<br />and Beverage Limited
+      </h1>
+      <p class="mx-auto mt-5 max-w-2xl font-display text-xl italic text-thai-gold sm:text-2xl">
+        Pure Taste with Real Quality
+      </p>
+      <p class="mx-auto mt-4 max-w-2xl text-thai-cream/85">
+        Cookies, Biscuits, Ready Mix &amp; Pickles — crafted with Thai tradition,
+        delivered with global trust.
+      </p>
+      <div class="mt-9 flex flex-wrap justify-center gap-4">
+        <a href="/products" class="rounded-full bg-thai-gold px-7 py-3 font-semibold text-thai-red shadow-lg transition hover:scale-105 hover:bg-thai-gold-soft">
+          Explore Products
+        </a>
+        <a href="/export" class="rounded-full border-2 border-thai-cream/60 px-7 py-3 font-semibold text-thai-cream transition hover:bg-thai-cream hover:text-thai-red">
+          Export Enquiry
+        </a>
+      </div>
+    </div>
+    <!-- gold accent bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- ── Featured Categories ─────────────────────────────────────── -->
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <div class="mb-10 text-center">
+      <h2 class="font-display text-3xl font-bold text-thai-red sm:text-4xl">Featured Categories</h2>
+      <p class="mt-2 text-thai-ink/70">Explore the flavors of Thailand by category.</p>
+    </div>
+    <div class="grid grid-cols-2 gap-6 lg:grid-cols-4">
+      {featuredCategories.map((cat, i) => (
+        <div class:list={[i >= 4 && 'hidden lg:block']}>
+          <CategoryCard category={cat} />
+        </div>
+      ))}
+    </div>
+    <div class="mt-10 text-center">
+      <a href="/products" class="font-semibold text-thai-green hover:text-thai-red transition">View all categories →</a>
+    </div>
+  </section>
+
+  <!-- ── Featured Products ───────────────────────────────────────── -->
+  <section class="bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-16">
+      <div class="mb-10 text-center">
+        <h2 class="font-display text-3xl font-bold text-thai-red sm:text-4xl">Featured Products</h2>
+        <p class="mt-2 text-thai-ink/70">A taste of what we bring to the world's table.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-6 lg:grid-cols-4">
+        {featuredProducts.map((p, i) => (
+          <div class:list={[i >= 4 && 'hidden lg:block']}>
+            <ProductCard product={p} />
+          </div>
+        ))}
+      </div>
+      <div class="mt-10 text-center">
+        <a href="/products" class="font-semibold text-thai-green hover:text-thai-red transition">Browse all products →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Value props ─────────────────────────────────────────────── -->
+  <section class="bg-thai-cream">
+    <div class="mx-auto grid max-w-7xl gap-8 px-4 py-16 md:grid-cols-3">
+      {[
+        { icon: '🏆', title: 'Quality', text: 'Premium ingredients and strict quality control in every batch.' },
+        { icon: '🏮', title: 'Tradition', text: 'Authentic Thai recipes passed down through generations.' },
+        { icon: '🤝', title: 'Integrity', text: 'Honest sourcing and reliable partnerships you can trust.' },
+      ].map((v) => (
+        <div class="rounded-2xl border border-thai-gold/30 bg-thai-cream/40 p-8 text-center transition hover:shadow-lg">
+          <div class="text-4xl">{v.icon}</div>
+          <h3 class="mt-3 font-display text-xl font-bold text-thai-red">{v.title}</h3>
+          <p class="mt-2 text-sm text-thai-ink/70">{v.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ── CTA strip ───────────────────────────────────────────────── -->
+  <section class="bg-thai-green text-white">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-4 py-12 text-center md:flex-row md:text-left">
+      <div>
+        <h2 class="font-display text-2xl font-bold sm:text-3xl">Looking to import authentic Thai products?</h2>
+        <p class="mt-1 text-white/85">We ship worldwide with full certification and reliable logistics.</p>
+      </div>
+      <a href="/contact" class="shrink-0 rounded-full bg-thai-gold px-8 py-3 font-semibold text-thai-red shadow-lg transition hover:scale-105">
+        Contact Us
+      </a>
+    </div>
+  </section>
+</Layout>

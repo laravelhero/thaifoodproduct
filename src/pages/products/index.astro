@@ -1,0 +1,31 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CategoryCard from '../../components/CategoryCard.astro';
+import HeroBackdrop from '../../components/HeroBackdrop.astro';
+import { getCategoryTree } from '../../lib/woo.js';
+
+const tree = await getCategoryTree();
+---
+
+<Layout title="Our Products — International Thai Food and Beverage">
+  <!-- Page header -->
+  <section class="relative overflow-hidden bg-thai-red text-thai-cream">
+    <HeroBackdrop />
+    <div class="relative mx-auto max-w-7xl px-4 py-16 text-center">
+      <h1 class="font-display text-4xl font-extrabold sm:text-5xl">Our Products</h1>
+      <p class="mt-3 font-display text-lg italic text-thai-gold">Explore Our Categories</p>
+      <p class="mx-auto mt-3 max-w-2xl text-thai-cream/85">
+        Each category is a unique taste experience from Thailand. Click any
+        category to browse its full range.
+      </p>
+    </div>
+    <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
+  </section>
+
+  <!-- Category grid -->
+  <section class="mx-auto max-w-7xl px-4 py-16">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {tree.map((cat) => <CategoryCard category={cat} />)}
+    </div>
+  </section>
+</Layout>
