@@ -1,10 +1,11 @@
 ---
+import { withBase } from '../lib/url.js';
 const { category } = Astro.props;
 const img = category.image?.src;
 const childCount = category.children?.length || 0;
 ---
 <a
-  href={`/products/${category.slug}`}
+  href={withBase(`/products/${category.slug}`)}
   class="group relative block overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:shadow-xl hover:-translate-y-1"
 >
   <div class="aspect-[4/3] overflow-hidden bg-thai-cream">

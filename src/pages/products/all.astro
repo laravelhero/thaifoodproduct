@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getCatalog, getCategoryTree } from '../../lib/woo.js';
+import { withBase } from '../../lib/url.js';
 
 const products = await getCatalog();
 const tree = await getCategoryTree();
@@ -13,8 +14,7 @@ const slim = products.map((p) => ({
   img: p.images?.[0]?.thumbnail || p.images?.[0]?.src || '',
   cat: p.catNames?.[0] || '',
   cats: p.catSlugs || [],
-  url: p.permalink,
-  desc: p.short_description || '',
+  url: withBase(`/product/${p.slug}`),
 }));
 ---
 
@@ -151,8 +151,8 @@ const slim = products.map((p) => ({
     <!-- Windowed product grid -->
     <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
       <template x-for="(p, i) in shown" :key="p.name + i">
-        <article x-data="{ open: false }" class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:shadow-xl">
-          <a :href="p.url" target="_blank" rel="noopener" class="relative block aspect-square overflow-hidden bg-thai-cream">
+        <a :href="p.url" class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:-translate-y-1 hover:shadow-xl">
+          <div class="relative aspect-square overflow-hidden bg-thai-cream">
             <template x-if="p.img">
               <img :src="p.img" :alt="p.name" loading="lazy" decoding="async" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
             </template>
@@ -162,23 +162,12 @@ const slim = products.map((p) => ({
             <template x-if="p.cat">
               <span class="absolute left-3 top-3 rounded-full bg-thai-green/90 px-2.5 py-1 text-[11px] font-semibold text-white" x-text="p.cat"></span>
             </template>
-          </a>
+          </div>
           <div class="flex flex-1 flex-col p-4">
             <h3 class="font-display text-lg font-bold leading-snug text-thai-red" x-text="p.name"></h3>
-            <div class="prose-spec mt-2 text-thai-ink/75" x-show="open" x-transition x-html="p.desc"></div>
-            <div class="mt-auto pt-3">
-              <template x-if="p.desc">
-                <button @click="open = !open" class="text-sm font-semibold text-thai-green hover:text-thai-red transition">
-                  <span x-show="!open">View More →</span>
-                  <span x-show="open">Show Less ↑</span>
-                </button>
-              </template>
-              <template x-if="!p.desc">
-                <a :href="p.url" target="_blank" rel="noopener" class="text-sm font-semibold text-thai-green hover:text-thai-red transition">View More →</a>
-              </template>
-            </div>
+            <span class="mt-auto pt-3 text-sm font-semibold text-thai-green transition group-hover:text-thai-red">View Details →</span>
           </div>
-        </article>
+        </a>
       </template>
     </div>
 

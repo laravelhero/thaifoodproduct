@@ -1,0 +1,149 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getCatalog } from '../../lib/woo.js';
+import { withBase } from '../../lib/url.js';
+import { company, tel } from '../../lib/company.js';
+
+export async function getStaticPaths() {
+  const products = await getCatalog();
+  return products.map((p) => {
+    const related = products
+      .filter(
+        (r) => r.id !== p.id && r.catSlugs.some((c) => p.catSlugs.includes(c))
+      )
+      .slice(0, 4);
+    return { params: { slug: p.slug }, props: { product: p, related } };
+  });
+}
+
+const { product, related } = Astro.props;
+const images = product.images?.length ? product.images : [];
+const catName = product.catNames?.[0];
+const catSlug = product.catSlugs?.[0];
+
+// Price (this is a catalog — most items are 0 / not for sale).
+const prices = product.prices || {};
+const minor = prices.currency_minor_unit ?? 2;
+const hasPrice = Number(prices.regular_price) > 0;
+const priceText = hasPrice
+  ? `${prices.currency_prefix || ''}${(Number(prices.price) / 10 ** minor).toFixed(minor)}${prices.currency_suffix || ''}`
+  : null;
+---
+
+<Layout title={`${product.name} — International Thai Food and Beverage`} description={product.short_description?.replace(/<[^>]+>/g, ' ').slice(0, 160)}>
+  <!-- Breadcrumb -->
+  <div class="border-b border-thai-ink/5 bg-thai-cream/50">
+    <nav class="mx-auto max-w-7xl px-4 py-4 text-sm text-thai-ink/60">
+      <a href={withBase('/products')} class="hover:text-thai-red">Products</a>
+      {catName && catSlug && (<><span class="px-1.5">/</span><a href={withBase(`/products/${catSlug}`)} class="hover:text-thai-red">{catName}</a></>)}
+      <span class="px-1.5">/</span>
+      <span class="text-thai-red">{product.name}</span>
+    </nav>
+  </div>
+
+  <!-- Product detail -->
+  <section class="mx-auto max-w-7xl px-4 py-12">
+    <div class="grid gap-8 lg:grid-cols-3">
+      <!-- Gallery -->
+      <div x-data={`{ active: 0, imgs: ${JSON.stringify(images.map((i) => i.src))} }`}>
+        <div class="aspect-square overflow-hidden rounded-2xl bg-thai-cream ring-1 ring-thai-ink/5">
+          {images.length ? (
+            <img :src="imgs[active]" src={images[0].src} alt={product.name} class="h-full w-full object-contain" />
+          ) : (
+            <div class="grid h-full w-full place-items-center text-7xl">🍪</div>
+          )}
+        </div>
+        {images.length > 1 && (
+          <div class="mt-4 flex flex-wrap gap-3">
+            {images.map((im, i) => (
+              <button
+                @click={`active = ${i}`}
+                :class={`active === ${i} ? 'ring-2 ring-thai-red' : 'ring-1 ring-thai-ink/10'`}
+                class="h-20 w-20 overflow-hidden rounded-lg bg-white transition"
+              >
+                <img src={im.thumbnail || im.src} alt={`${product.name} ${i + 1}`} loading="lazy" class="h-full w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Info -->
+      <div>
+        {catName && (
+          <a href={withBase(`/products/${catSlug}`)} class="inline-block rounded-full bg-thai-green/10 px-3 py-1 text-xs font-semibold text-thai-green ring-1 ring-thai-green/30 transition hover:bg-thai-green hover:text-white">
+            {catName}
+          </a>
+        )}
+        <h1 class="mt-3 font-display text-3xl font-extrabold text-thai-red sm:text-4xl">{product.name}</h1>
+
+        {priceText && <p class="mt-3 text-2xl font-bold text-thai-ink">{priceText}</p>}
+
+        {product.short_description && (
+          <div class="prose-spec mt-5 rounded-xl bg-thai-cream/60 p-5 text-thai-ink/80" set:html={product.short_description} />
+        )}
+
+        {product.description && (
+          <div class="prose-spec mt-5 leading-relaxed text-thai-ink/75" set:html={product.description} />
+        )}
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href={withBase('/contact')} class="rounded-full bg-thai-red px-7 py-3 font-semibold text-thai-cream shadow transition hover:bg-thai-red-dark">
+            Enquire About This Product
+          </a>
+          <a href={withBase(`/products/${catSlug || ''}`)} class="rounded-full border-2 border-thai-red/30 px-7 py-3 font-semibold text-thai-red transition hover:bg-thai-red hover:text-thai-cream">
+            ← Back to {catName || 'Products'}
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact / enquiry column -->
+      <aside class="self-start rounded-2xl bg-thai-cream/60 p-6 ring-1 ring-thai-gold/30">
+        <h2 class="font-display text-lg font-bold text-thai-red">Order &amp; Enquiry</h2>
+        <p class="mt-1 text-sm text-thai-ink/70">Contact us to place an order or request an export quote.</p>
+
+        <div class="mt-5 space-y-4 text-sm text-thai-ink/80">
+          <div class="flex gap-2">
+            <span aria-hidden="true">📍</span>
+            <div><div class="font-semibold text-thai-ink">Address</div><p>{company.name}<br />{company.address}</p></div>
+          </div>
+          <div class="flex gap-2">
+            <span aria-hidden="true">📞</span>
+            <div><div class="font-semibold text-thai-ink">Cell (Office)</div><a href={tel(company.office)} class="hover:text-thai-red">{company.office}</a></div>
+          </div>
+        </div>
+
+        <div class="mt-4 border-t border-thai-gold/30 pt-4">
+          <div class="font-display font-bold text-thai-red">Local</div>
+          <ul class="mt-1 space-y-1 text-sm text-thai-ink/80">
+            <li><span class="font-semibold">Cell:</span> <a href={tel(company.local.cell)} class="hover:text-thai-red">{company.local.cell}</a></li>
+            <li><span class="font-semibold">Email:</span> <a href={`mailto:${company.local.email}`} class="hover:text-thai-red">{company.local.email}</a></li>
+          </ul>
+        </div>
+
+        <div class="mt-4 border-t border-thai-gold/30 pt-4">
+          <div class="font-display font-bold text-thai-red">Export</div>
+          <ul class="mt-1 space-y-1 text-sm text-thai-ink/80">
+            <li><span class="font-semibold">Cell:</span> <a href={tel(company.exportContact.cell)} class="hover:text-thai-red">{company.exportContact.cell}</a></li>
+            <li><span class="font-semibold">Email:</span> <a href={`mailto:${company.exportContact.email}`} class="hover:text-thai-red">{company.exportContact.email}</a></li>
+          </ul>
+        </div>
+
+        <p class="mt-4 text-xs text-thai-ink/60">Business Hours: {company.hours}</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Related products -->
+  {related.length > 0 && (
+    <section class="bg-thai-cream/60">
+      <div class="mx-auto max-w-7xl px-4 py-14">
+        <h2 class="mb-8 text-center font-display text-2xl font-bold text-thai-red sm:text-3xl">Related Products</h2>
+        <div class="grid grid-cols-2 gap-6 lg:grid-cols-4">
+          {related.map((p) => <ProductCard product={p} />)}
+        </div>
+      </div>
+    </section>
+  )}
+</Layout>

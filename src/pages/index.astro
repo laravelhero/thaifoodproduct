@@ -2,46 +2,116 @@
 import Layout from '../layouts/Layout.astro';
 import CategoryCard from '../components/CategoryCard.astro';
 import ProductCard from '../components/ProductCard.astro';
-import HeroBackdrop from '../components/HeroBackdrop.astro';
-import { getCategoryTree, getFeaturedProducts } from '../lib/woo.js';
+import { getCategoryTree, getFeaturedProducts, getAllProducts } from '../lib/woo.js';
+import { withBase } from '../lib/url.js';
 
 const tree = await getCategoryTree();
 // Featured Categories — 8 on desktop, 4 on mobile (items 5–8 hidden below lg).
 const featuredCategories = tree.slice(0, 8);
 // Featured Products — 8 on desktop, 4 on mobile.
 const featuredProducts = await getFeaturedProducts(8);
+
+// Hero slider — the Featured products (★ in WooCommerce) that have an image.
+let sliderImages = featuredProducts
+  .filter((p) => p.images?.[0]?.src)
+  .map((p) => ({ src: p.images[0].src, name: p.name, slug: p.slug }));
+
+// Fallback: if nothing is featured yet, show a spread of catalog photos.
+if (sliderImages.length === 0) {
+  const withImg = (await getAllProducts()).filter((p) => p.images?.[0]?.src);
+  const step = Math.max(1, Math.floor(withImg.length / 6));
+  sliderImages = Array.from({ length: 6 }, (_, i) => withImg[i * step])
+    .filter(Boolean)
+    .map((p) => ({ src: p.images[0].src, name: p.name, slug: p.slug }));
+}
 ---
 
 <Layout>
   <!-- ── Hero ─────────────────────────────────────────────────────── -->
   <section class="relative overflow-hidden bg-thai-red text-thai-cream">
-    <HeroBackdrop />
     <div class="absolute inset-0 opacity-10" aria-hidden="true"
-      style="background-image: radial-gradient(circle at 20% 20%, #FFD700 0, transparent 40%), radial-gradient(circle at 80% 70%, #FFD700 0, transparent 45%);">
+      style="background-image: radial-gradient(circle at 10% 30%, #FFD700 0, transparent 45%);">
     </div>
-    <div class="relative mx-auto max-w-7xl px-4 py-24 sm:py-32 text-center">
-      <p class="mb-4 inline-block rounded-full bg-thai-gold/20 px-4 py-1 text-sm font-medium text-thai-gold ring-1 ring-thai-gold/40">
-        🌍 Exporting authentic Thai flavor worldwide
-      </p>
-      <h1 class="font-display text-4xl font-extrabold leading-tight sm:text-6xl animate-fade-up">
-        International Thai Food<br />and Beverage Limited
-      </h1>
-      <p class="mx-auto mt-5 max-w-2xl font-display text-xl italic text-thai-gold sm:text-2xl">
-        Pure Taste with Real Quality
-      </p>
-      <p class="mx-auto mt-4 max-w-2xl text-thai-cream/85">
-        Cookies, Biscuits, Ready Mix &amp; Pickles — crafted with Thai tradition,
-        delivered with global trust.
-      </p>
-      <div class="mt-9 flex flex-wrap justify-center gap-4">
-        <a href="/products" class="rounded-full bg-thai-gold px-7 py-3 font-semibold text-thai-red shadow-lg transition hover:scale-105 hover:bg-thai-gold-soft">
-          Explore Products
-        </a>
-        <a href="/export" class="rounded-full border-2 border-thai-cream/60 px-7 py-3 font-semibold text-thai-cream transition hover:bg-thai-cream hover:text-thai-red">
-          Export Enquiry
-        </a>
+
+    <div class="relative grid items-stretch lg:min-h-[34rem] lg:grid-cols-2">
+
+      <!-- Left: text, left-aligned (kept within the page container) -->
+      <div class="order-2 flex flex-col justify-center px-6 py-14 lg:order-1 lg:py-20 lg:pr-12 lg:[padding-left:max(1.5rem,calc((100vw-80rem)/2+1rem))]">
+        <p class="mb-4 inline-block w-fit rounded-full bg-thai-gold/20 px-4 py-1 text-sm font-medium text-thai-gold ring-1 ring-thai-gold/40">
+          🌍 Exporting authentic Thai flavor worldwide
+        </p>
+        <h1 class="font-display text-4xl font-extrabold leading-tight sm:text-5xl xl:text-6xl animate-fade-up">
+          International Thai Food and Beverage Limited
+        </h1>
+        <p class="mt-5 font-display text-xl italic text-thai-gold sm:text-2xl">
+          Pure Taste with Real Quality
+        </p>
+        <p class="mt-4 max-w-xl text-thai-cream/85">
+          Cookies, Biscuits, Ready Mix &amp; Pickles — crafted with Thai tradition,
+          delivered with global trust.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-4">
+          <a href="/products" class="rounded-full bg-thai-gold px-7 py-3 font-semibold text-thai-red shadow-lg transition hover:scale-105 hover:bg-thai-gold-soft">
+            Explore Products
+          </a>
+          <a href="/export" class="rounded-full border-2 border-thai-cream/60 px-7 py-3 font-semibold text-thai-cream transition hover:bg-thai-cream hover:text-thai-red">
+            Export Enquiry
+          </a>
+        </div>
       </div>
+
+      <!-- Right: full-height, full-bleed image slider -->
+      <div
+        class="relative order-1 min-h-[20rem] overflow-hidden lg:order-2 lg:min-h-0"
+        x-data={`{
+          active: 0,
+          slides: ${JSON.stringify(sliderImages)},
+          timer: null,
+          next() { this.active = (this.active + 1) % this.slides.length; },
+          prev() { this.active = (this.active - 1 + this.slides.length) % this.slides.length; },
+          play() { this.timer = setInterval(() => this.next(), 4000); },
+          stop() { clearInterval(this.timer); }
+        }`}
+        x-init="play()"
+        @mouseenter="stop()"
+        @mouseleave="play()"
+      >
+        <!-- pre-hydration poster -->
+        <img src={sliderImages[0]?.src} alt={sliderImages[0]?.name} class="absolute inset-0 h-full w-full object-cover" />
+        <!-- crossfading slides -->
+        <template x-for="(s, i) in slides" :key="i">
+          <img
+            :src="s.src"
+            :alt="s.name"
+            x-show="active === i"
+            x-cloak
+            x-transition:enter="transition-opacity duration-700"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity duration-700"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="absolute inset-0 h-full w-full object-cover"
+          />
+        </template>
+
+        <!-- arrows -->
+        <button @click="prev()" aria-label="Previous slide" class="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-2xl leading-none text-thai-red shadow transition hover:bg-white">‹</button>
+        <button @click="next()" aria-label="Next slide" class="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-2xl leading-none text-thai-red shadow transition hover:bg-white">›</button>
+
+        <!-- caption + dots -->
+        <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-4 bg-gradient-to-t from-black/70 to-transparent p-5">
+          <a :href={`'${withBase('/product/')}' + slides[active]?.slug`} class="font-display text-lg font-bold text-white drop-shadow transition hover:text-thai-gold" x-text="slides[active]?.name"></a>
+          <div class="flex shrink-0 gap-2">
+            <template x-for="(s, i) in slides" :key="i">
+              <button @click="active = i" :aria-label="'Go to slide ' + (i + 1)" :class="active === i ? 'w-6 bg-thai-gold' : 'w-2.5 bg-white/60 hover:bg-white'" class="h-2.5 rounded-full transition-all"></button>
+            </template>
+          </div>
+        </div>
+      </div>
+
     </div>
+
     <!-- gold accent bar -->
     <div class="h-1.5 w-full bg-gradient-to-r from-thai-gold via-thai-gold-soft to-thai-gold"></div>
   </section>

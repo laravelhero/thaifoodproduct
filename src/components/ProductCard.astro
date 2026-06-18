@@ -1,11 +1,14 @@
 ---
+import { withBase } from '../lib/url.js';
+
 const { product } = Astro.props;
-const img = product.images?.[0]?.src;
-const cat = product.categories?.[0];
+const img = product.images?.[0]?.thumbnail || product.images?.[0]?.src;
+const cat = product.categories?.[0]?.name || product.catNames?.[0];
+const href = withBase(`/product/${product.slug}`);
 ---
-<article
-  x-data="{ open: false }"
-  class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:shadow-xl"
+<a
+  href={href}
+  class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-thai-ink/5 transition hover:-translate-y-1 hover:shadow-xl"
 >
   <div class="relative aspect-square overflow-hidden bg-thai-cream">
     {img ? (
@@ -13,6 +16,7 @@ const cat = product.categories?.[0];
         src={img}
         alt={product.name}
         loading="lazy"
+        decoding="async"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
     ) : (
@@ -20,37 +24,15 @@ const cat = product.categories?.[0];
     )}
     {cat && (
       <span class="absolute left-3 top-3 rounded-full bg-thai-green/90 px-2.5 py-1 text-[11px] font-semibold text-white">
-        {cat.name}
+        {cat}
       </span>
     )}
   </div>
 
   <div class="flex flex-1 flex-col p-4">
     <h3 class="font-display text-lg font-bold leading-snug text-thai-red">{product.name}</h3>
-
-    {product.short_description && (
-      <div
-        class="prose-spec mt-2 text-thai-ink/75"
-        x-show="open"
-        x-transition
-        x-cloak
-        style="display:none"
-        set:html={product.short_description}
-      />
-    )}
-
-    <div class="mt-auto pt-3">
-      {product.short_description ? (
-        <button
-          @click="open = !open"
-          class="text-sm font-semibold text-thai-green hover:text-thai-red transition"
-        >
-          <span x-show="!open">View More →</span>
-          <span x-show="open" x-cloak style="display:none">Show Less ↑</span>
-        </button>
-      ) : (
-        <a href={product.permalink} target="_blank" rel="noopener" class="text-sm font-semibold text-thai-green hover:text-thai-red transition">View More →</a>
-      )}
-    </div>
+    <span class="mt-auto pt-3 text-sm font-semibold text-thai-green transition group-hover:text-thai-red">
+      View Details →
+    </span>
   </div>
-</article>
+</a>

@@ -1,8 +1,9 @@
 ---
 import { getCategoryTree } from '../lib/woo.js';
+import { withBase, stripBase } from '../lib/url.js';
 
 const tree = await getCategoryTree();
-const current = Astro.url.pathname;
+const current = stripBase(Astro.url.pathname);
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -19,16 +20,16 @@ const isActive = (href) =>
 
 <header class="sticky top-0 z-50 bg-thai-red text-thai-cream shadow-lg" x-data="{ mobile: false }">
   <div class="mx-auto max-w-7xl px-4">
-    <div class="flex items-center justify-between h-20">
+    <div class="flex items-center justify-between h-24">
       <!-- Brand -->
-      <a href="/" class="flex items-center gap-3 group">
-        <span class="grid place-items-center w-11 h-11 rounded-full bg-thai-gold text-thai-red font-display font-extrabold text-xl shadow ring-2 ring-thai-gold/40">
-          T
-        </span>
-        <span class="leading-tight">
-          <span class="block font-display font-bold text-base sm:text-lg">International Thai Food</span>
-          <span class="block text-[11px] tracking-wide text-thai-gold italic">Pure Taste with Real Quality</span>
-        </span>
+      <a href={withBase('/')} class="flex items-center" aria-label="International Thai Food and Beverage Limited — Home">
+        <img
+          src={withBase('/images/logo.png')}
+          alt="ITFBL — International Thai Food and Beverage Limited"
+          width="370"
+          height="173"
+          class="h-14 w-auto rounded-lg bg-white px-3 py-1.5 shadow-sm sm:h-16"
+        />
       </a>
 
       <!-- Desktop nav -->
@@ -37,7 +38,7 @@ const isActive = (href) =>
           link.hasMenu ? (
             <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
               <a
-                href={link.href}
+                href={withBase(link.href)}
                 class:list={[
                   'inline-flex items-center gap-1 px-4 py-2 rounded-md font-medium transition hover:bg-thai-red-dark',
                   isActive(link.href) && 'bg-thai-red-dark text-thai-gold',
@@ -56,13 +57,13 @@ const isActive = (href) =>
                 style="display:none"
               >
                 <div class="rounded-xl bg-thai-cream text-thai-ink shadow-2xl ring-1 ring-thai-red/10 p-4">
-                  <a href="/products/all" class="mb-2 flex items-center justify-between rounded-lg bg-thai-red px-3 py-2 font-semibold text-thai-cream transition hover:bg-thai-red-dark">
+                  <a href={withBase('/products/all')} class="mb-2 flex items-center justify-between rounded-lg bg-thai-red px-3 py-2 font-semibold text-thai-cream transition hover:bg-thai-red-dark">
                     <span>All Products</span>
                     <span aria-hidden="true">→</span>
                   </a>
                   <div class="grid grid-cols-2 gap-1">
                   {tree.map((cat) => (
-                    <a href={`/products/${cat.slug}`} class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-thai-red hover:text-thai-cream transition font-semibold">
+                    <a href={withBase(`/products/${cat.slug}`)} class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-thai-red hover:text-thai-cream transition font-semibold">
                       <span>{cat.name}</span>
                       <span class="text-xs opacity-60">{cat.count}</span>
                     </a>
@@ -73,7 +74,7 @@ const isActive = (href) =>
             </div>
           ) : (
             <a
-              href={link.href}
+              href={withBase(link.href)}
               class:list={[
                 'px-4 py-2 rounded-md font-medium transition hover:bg-thai-red-dark',
                 isActive(link.href) && 'bg-thai-red-dark text-thai-gold',
@@ -83,6 +84,18 @@ const isActive = (href) =>
             </a>
           )
         )}
+
+        <!-- Brochure (PDF) -->
+        <a
+          href="https://thaifoodproduct.com/wp-content/uploads/2022/09/Full-page-photo.pdf"
+          target="_blank"
+          rel="noopener"
+          download
+          class="ml-2 inline-flex items-center gap-1.5 rounded-full bg-thai-gold px-4 py-2 font-semibold text-thai-red shadow transition hover:bg-thai-gold-soft"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          Brochure
+        </a>
       </nav>
 
       <!-- Mobile toggle -->
@@ -96,26 +109,36 @@ const isActive = (href) =>
   <!-- Mobile drawer -->
   <div x-show="mobile" x-transition x-cloak class="lg:hidden bg-thai-red-dark border-t border-thai-cream/10" style="display:none">
     <nav class="px-4 py-3 space-y-1">
-      <a href="/" class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Home</a>
-      <a href="/about" class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">About</a>
+      <a href={withBase('/')} class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Home</a>
+      <a href={withBase('/about')} class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">About</a>
       <div x-data="{ sub: false }">
         <button @click="sub = !sub" class="w-full flex items-center justify-between px-3 py-2 rounded-md hover:bg-thai-red font-medium">
           Products
           <svg class="w-4 h-4" :class="sub && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
         </button>
         <div x-show="sub" x-cloak class="pl-3 mt-1 space-y-0.5 border-l-2 border-thai-gold/40 ml-3" style="display:none">
-          <a href="/products/all" class="block px-3 py-1.5 text-sm font-semibold text-thai-gold">All Products</a>
-          <a href="/products" class="block px-3 py-1.5 text-sm text-thai-gold">All Categories</a>
+          <a href={withBase('/products/all')} class="block px-3 py-1.5 text-sm font-semibold text-thai-gold">All Products</a>
+          <a href={withBase('/products')} class="block px-3 py-1.5 text-sm text-thai-gold">All Categories</a>
           {tree.map((cat) => (
-            <a href={`/products/${cat.slug}`} class="flex justify-between px-3 py-1.5 text-sm hover:text-thai-gold">
+            <a href={withBase(`/products/${cat.slug}`)} class="flex justify-between px-3 py-1.5 text-sm hover:text-thai-gold">
               <span>{cat.name}</span><span class="opacity-60">{cat.count}</span>
             </a>
           ))}
         </div>
       </div>
-      <a href="/export" class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Export</a>
-      <a href="/contact#media" class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Media</a>
-      <a href="/contact" class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Contact Us</a>
+      <a href={withBase('/export')} class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Export</a>
+      <a href={withBase('/contact#media')} class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Media</a>
+      <a href={withBase('/contact')} class="block px-3 py-2 rounded-md hover:bg-thai-red font-medium">Contact Us</a>
+      <a
+        href="https://thaifoodproduct.com/wp-content/uploads/2022/09/Full-page-photo.pdf"
+        target="_blank"
+        rel="noopener"
+        download
+        class="mt-1 flex items-center gap-2 rounded-full bg-thai-gold px-3 py-2 font-semibold text-thai-red"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+        Brochure
+      </a>
     </nav>
   </div>
 </header>

@@ -21,13 +21,7 @@ import HeroBackdrop from '../components/HeroBackdrop.astro';
       <!-- Contact form -->
       <div
         class="rounded-2xl bg-white p-8 shadow-md ring-1 ring-thai-ink/5"
-        x-data="{ name:'', email:'', message:'', sent:false,
-          submit() {
-            if(!this.name || !this.email || !this.message) return;
-            this.sent = true;
-            window.location.href = `mailto:info@bd-itfbl.com?subject=${encodeURIComponent('Website enquiry from '+this.name)}&body=${encodeURIComponent(this.message+'\n\nFrom: '+this.name+' ('+this.email+')')}`;
-          }
-        }"
+        x-data="contactForm"
       >
         <h2 class="font-display text-2xl font-bold text-thai-red">Send a Message</h2>
         <p class="mt-1 text-sm text-thai-ink/60">Fill in the form and we'll get back to you shortly.</p>
@@ -42,8 +36,22 @@ import HeroBackdrop from '../components/HeroBackdrop.astro';
             <input x-model="email" type="email" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="you@example.com" />
           </div>
           <div>
+            <label class="block text-sm font-medium text-thai-ink/80">Phone</label>
+            <input x-model="phone" type="tel" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="+880 1xxxxxxxxx" />
+          </div>
+          <div>
             <label class="block text-sm font-medium text-thai-ink/80">Message</label>
             <textarea x-model="message" rows="5" required class="mt-1 w-full rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="How can we help?"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-thai-ink/80">
+              Spam check: What is <span x-text="a"></span> + <span x-text="b"></span>?
+            </label>
+            <div class="mt-1 flex items-center gap-2">
+              <input x-model="answer" type="number" inputmode="numeric" required class="w-32 rounded-lg border border-thai-ink/15 px-4 py-2.5 focus:border-thai-red focus:ring-2 focus:ring-thai-red/20 outline-none" placeholder="Answer" />
+              <button type="button" @click="roll()" class="rounded-lg px-3 py-2 text-sm font-medium text-thai-green hover:text-thai-red" aria-label="New question">↻ New</button>
+            </div>
+            <p x-show="error" x-cloak style="display:none" class="mt-1 text-sm text-thai-red" x-text="error"></p>
           </div>
           <button type="submit" class="w-full rounded-lg bg-thai-red px-6 py-3 font-semibold text-thai-cream shadow transition hover:bg-thai-red-dark">
             Send Message
