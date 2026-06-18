@@ -8,7 +8,7 @@
  */
 const BASE =
   import.meta.env.WOO_API_BASE ||
-  'https://wp-thaifoodproduct.test/wp-json/wc/store/v1';
+  'https://thaifoodproduct.com/wp-json/wc/store/v1';
 
 async function api(path) {
   const res = await fetch(`${BASE}${path}`);
